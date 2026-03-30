@@ -210,8 +210,20 @@ router.patch("/:id", (req, res) => {
   if (!user) return res.status(404).json({ error: "User not found" });
   if (req.body.id) delete req.body.id; // Prevents changes to ID
   if (req.body.age) req.body.age = parseInt(req.body.age); // Typecast to int
-  Object.assign(user, req.body); // Update the specific user's data for the 
+  Object.assign(user, req.body); // Update the specific user's data for the
   res.status(200).json(user); // Return Status code 200 - Ok
+});
+
+/*
+  DELETE REQUESTS
+*/
+
+router.delete("/:id", (req, res) => {
+  const index = users.findIndex((user) => user.id === parseInt(req.params.id)); // Find user to delete in data
+  if (index === -1) return res.status(404).json({ error: "User ID not found" }); // If not found return error
+  const [deletedUser] = users.splice(index, 1); // Delete specific user & store deleted record in variable
+
+  res.status(200).json(deletedUser); // Return the deleted user
 });
 
 export default router;

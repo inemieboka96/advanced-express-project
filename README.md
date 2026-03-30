@@ -17,7 +17,8 @@ This project explores the deeper features of Express.js, including complex middl
 
 ## ✨ Features
 - **Modular Routing**: Organized using `express.Router()`.
-- **Custom Middleware**: Implementation of logging, auth, and error-handling layers.
+- **Full CRUD Operations**: Complete implementation of GET, POST, PUT, PATCH, and DELETE handlers for Users and Products.
+- **Advanced Filtering**: Robust search endpoints with dynamic query parameter validation and refined error handling for empty results.
 - **Input Validation**: Sanitizing and validating user data.
 - **Security Layers**: Implementation of `helmet`, `cors`, and rate limiting.
 - **Template Engines**: Dynamic rendering with EJS.
@@ -54,13 +55,12 @@ SESSION_SECRET=your_super_secret_key
 ## 📂 Project Structure
 
 ```text
-├── src/
-│   ├── routes/         # API and Web route definitions
-│   ├── middleware/     # Custom logic for request/response cycles
-│   ├── controllers/    # Business logic for specific routes
-│   ├── models/         # Database schemas and models
-│   ├── views/          # EJS templates for front-end rendering
-│   └── app.js          # Main application entry point
+├── routes/             # API and Web route definitions
+├── middleware/         # Custom logic for request/response cycles
+├── controllers/        # Business logic for specific routes
+├── models/             # Database schemas and models
+├── views/              # EJS templates for front-end rendering
+├── app.js              # Main application entry point
 ├── .env                # Secret management
 └── package.json        # Project metadata
 ```

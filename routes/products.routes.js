@@ -4,15 +4,51 @@ const router = express.Router();
 
 // Sample Data
 const products = [
-  { id: 1, name: "MacBook Pro", price: 1999, category: "Electronics", stock: 10 },
+  {
+    id: 1,
+    name: "MacBook Pro",
+    price: 1999,
+    category: "Electronics",
+    stock: 10,
+  },
   { id: 2, name: "iPhone 15", price: 999, category: "Electronics", stock: 25 },
-  { id: 3, name: "Ergonomic Chair", price: 299, category: "Furniture", stock: 15 },
-  { id: 4, name: "Mechanical Keyboard", price: 150, category: "Peripherals", stock: 30 },
-  { id: 5, name: "Gaming Mouse", price: 80, category: "Peripherals", stock: 50 },
+  {
+    id: 3,
+    name: "Ergonomic Chair",
+    price: 299,
+    category: "Furniture",
+    stock: 15,
+  },
+  {
+    id: 4,
+    name: "Mechanical Keyboard",
+    price: 150,
+    category: "Peripherals",
+    stock: 30,
+  },
+  {
+    id: 5,
+    name: "Gaming Mouse",
+    price: 80,
+    category: "Peripherals",
+    stock: 50,
+  },
   { id: 6, name: "4K Monitor", price: 400, category: "Electronics", stock: 12 },
   { id: 7, name: "Standing Desk", price: 550, category: "Furniture", stock: 8 },
-  { id: 8, name: "Noise Cancelling Headphones", price: 350, category: "Audio", stock: 20 },
-  { id: 9, name: "Smart Watch", price: 250, category: "Electronics", stock: 40 },
+  {
+    id: 8,
+    name: "Noise Cancelling Headphones",
+    price: 350,
+    category: "Audio",
+    stock: 20,
+  },
+  {
+    id: 9,
+    name: "Smart Watch",
+    price: 250,
+    category: "Electronics",
+    stock: 40,
+  },
   { id: 10, name: "USB-C Hub", price: 60, category: "Accessories", stock: 100 },
 ];
 
@@ -147,6 +183,20 @@ router.patch("/:id", (req, res) => {
   if (req.body.stock) req.body.stock = parseInt(req.body.stock); // Typecast to int
   Object.assign(product, req.body); // Update the specific product's data
   res.status(200).json(product); // Return Status code 200 - Ok
+});
+
+/*
+  DELETE REQUESTS
+*/
+
+router.delete("/:id", (req, res) => {
+  const index = products.findIndex(
+    (product) => product.id === parseInt(req.params.id),
+  ); // Find product to delete in data
+  if (index === -1) return res.status(404).json({ error: "Product ID not found" }); // If not found return error
+  const [deletedProduct] = products.splice(index, 1); // Delete specific product & store deleted record in variable
+
+  res.status(200).json(deletedProduct); // Return the deleted product
 });
 
 export default router;

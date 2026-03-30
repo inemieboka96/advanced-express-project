@@ -106,4 +106,47 @@ router.post("/", (req, res) => {
   res.status(201).json(newProduct);
 });
 
+/*
+  PUT REQUESTS
+*/
+
+router.put("/:id", (req, res) => {
+  // Find index of specific product
+  const productIndex = products.findIndex(
+    (product) => product.id === parseInt(req.params.id),
+  );
+
+  // If not found (using === -1 to avoid bugs with index 0)
+  if (productIndex === -1)
+    return res.status(404).json({ error: "Product not found" });
+
+  // Destruct request body
+  const { name, price, category, stock } = req.body;
+
+  // Update specific product's data
+  products[productIndex] = {
+    id: parseInt(req.params.id),
+    name: name,
+    price: parseFloat(price),
+    category: category || "Uncategorized",
+    stock: parseInt(stock) || 0,
+  };
+  // Return Code 200 - Ok
+  res.status(200).json(products[productIndex]);
+});
+
+/*
+  PATCH REQUESTS
+*/
+
+router.patch("/:id", (req, res) => {
+  const product = products.find((p) => p.id === parseInt(req.params.id));
+  if (!product) return res.status(404).json({ error: "Product not found" });
+  if (req.body.id) delete req.body.id; // Prevents changes to ID
+  if (req.body.price) req.body.price = parseFloat(req.body.price); // Typecast to float
+  if (req.body.stock) req.body.stock = parseInt(req.body.stock); // Typecast to int
+  Object.assign(product, req.body); // Update the specific product's data
+  res.status(200).json(product); // Return Status code 200 - Ok
+});
+
 export default router;

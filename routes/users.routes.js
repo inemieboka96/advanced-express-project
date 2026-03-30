@@ -174,4 +174,44 @@ router.post("/", (req, res) => {
   res.status(201).json(newUser); // Give response status code of 200 and return new data
 });
 
+/*
+  PUT REQUESTS
+*/
+
+router.put("/:id", (req, res) => {
+  // Find index of specific user
+  const userIndex = users.findIndex(
+    (user) => user.id === parseInt(req.params.id),
+  );
+  // If not found
+  if (!userIndex) return res.status(404).json({ error: "User not found" });
+
+  // Destruct request body
+  const { username, email, role, age } = req.body;
+
+  // Update specific user's data
+  users[userIndex] = {
+    id: parseInt(req.params.id),
+    username: username,
+    email: email,
+    role: role || "user",
+    age: parseInt(age),
+  };
+  // Return Code 200 - Ok
+  res.status(200).json(users[userIndex]);
+});
+
+/*
+  PATCH REQUESTS
+*/
+
+router.patch("/:id", (req, res) => {
+  const user = users.find((user) => user.id === parseInt(req.params.id));
+  if (!user) return res.status(404).json({ error: "User not found" });
+  if (req.body.id) delete req.body.id; // Prevents changes to ID
+  if (req.body.age) req.body.age = parseInt(req.body.age); // Typecast to int
+  Object.assign(user, req.body); // Update the specific user's data for the 
+  res.status(200).json(user); // Return Status code 200 - Ok
+});
+
 export default router;

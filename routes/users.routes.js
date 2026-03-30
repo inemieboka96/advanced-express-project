@@ -92,10 +92,6 @@ router.get("/search", (req, res) => {
   let filteredData = users; // Prevents original data from mutating
   // Filter the data accordingly
 
-  // Edge Case: No matches
-  if (filteredData.length === 0)
-    return res.status(404).json({ error: "No users matching criteria" });
-
   if (id) {
     // Edge Case; Non-Numerical user ID
     if (isNaN(parseInt(id)))
@@ -129,6 +125,10 @@ router.get("/search", (req, res) => {
       (user) => parseInt(user.age) === parseInt(age),
     );
   }
+
+  // Edge Case: No matches after filtering
+  if (filteredData.length === 0)
+    return res.status(404).json({ error: "No users matching criteria" });
 
   // Return filtered data
   res.json(filteredData);

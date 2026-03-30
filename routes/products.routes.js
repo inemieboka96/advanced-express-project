@@ -30,10 +30,6 @@ router.get("/search", (req, res) => {
   const { id, name, category, minPrice, maxPrice } = req.query;
   let filteredData = products;
 
-  // Check if data exists initially
-  if (filteredData.length === 0)
-    return res.status(404).json({ error: "No products available" });
-
   if (id) {
     if (isNaN(parseInt(id)))
       return res.status(400).json({ error: "ID must be a number" });
@@ -66,6 +62,10 @@ router.get("/search", (req, res) => {
       (product) => product.price <= parseFloat(maxPrice),
     );
   }
+
+  // Check if data exists after filtering
+  if (filteredData.length === 0)
+    return res.status(404).json({ error: "No products available" });
 
   // Return filtered data
   res.json(filteredData);

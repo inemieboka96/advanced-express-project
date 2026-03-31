@@ -93,13 +93,13 @@ router.get("/search", [
 
   if (minPrice) {
     filteredData = filteredData.filter(
-      (product) => product.price >= parseFloat(minPrice),
+      (product) => product.price >= minPrice,
     );
   }
 
   if (maxPrice) {
     filteredData = filteredData.filter(
-      (product) => product.price <= parseFloat(maxPrice),
+      (product) => product.price <= maxPrice,
     );
   }
 
@@ -149,10 +149,17 @@ router.post("/", [
   PUT REQUESTS
 */
 
-router.put("/:id", (req, res) => {
+router.put("/:id", [
+  param("id").isInt().toInt(),
+  body("name").trim().notEmpty(),
+  body("price").isFloat({ min: 0 }).toFloat(),
+  body("category").optional().trim(),
+  body("stock").optional().isInt({ min: 0 }).toInt(),
+  handleValidations
+], (req, res) => {
   // Find index of specific product
   const productIndex = products.findIndex(
-    (product) => product.id === parseInt(req.params.id),
+    (product) => product.id === req.params.id,
   );
 
   // If not found (using === -1 to avoid bugs with index 0)
@@ -164,9 +171,9 @@ router.put("/:id", (req, res) => {
 
   // Update specific product's data
   products[productIndex] = {
-    id: parseInt(req.params.id),
+    id: req.params.id,
     name: name,
-    price: parseFloat(price),
+    price: price,
     category: category || "Uncategorized",
     stock: parseInt(stock) || 0,
   };
@@ -178,12 +185,15 @@ router.put("/:id", (req, res) => {
   PATCH REQUESTS
 */
 
-router.patch("/:id", (req, res) => {
-  const product = products.find((p) => p.id === parseInt(req.params.id));
+router.patch("/:id", [
+  param("id").isInt().toInt(),
+  body("name").optional().trim().notEmpty(),
+  body("price").optional().isFloat({ min: 0 }).toFloat(),
+  handleValidations
+], (req, res) => {
+  const product = products.find((p) => p.id === req.params.id);
   if (!product) return res.status(404).json({ error: "Product not found" });
   if (req.body.id) delete req.body.id; // Prevents changes to ID
-  if (req.body.price) req.body.price = parseFloat(req.body.price); // Typecast to float
-  if (req.body.stock) req.body.stock = parseInt(req.body.stock); // Typecast to int
   Object.assign(product, req.body); // Update the specific product's data
   res.status(200).json(product); // Return Status code 200 - Ok
 });
@@ -192,9 +202,12 @@ router.patch("/:id", (req, res) => {
   DELETE REQUESTS
 */
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", [
+  param("id").isInt().toInt(),
+  handleValidations
+], (req, res) => {
   const index = products.findIndex(
-    (product) => product.id === parseInt(req.params.id),
+    (product) => product.id === req.params.id,
   ); // Find product to delete in data
   if (index === -1) return res.status(404).json({ error: "Product ID not found" }); // If not found return error
   const [deletedProduct] = products.splice(index, 1); // Delete specific product & store deleted record in variable

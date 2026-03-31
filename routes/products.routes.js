@@ -1,4 +1,6 @@
 import express from "express";
+import { body, query, param } from "express-validator";
+import { handleValidations } from "../middleware/validator.middleware.js";
 
 const router = express.Router();
 
@@ -62,16 +64,18 @@ router.get("/", (req, res) => {
 });
 
 // GET /api/products/search - Searching for specific data
-router.get("/search", (req, res) => {
+router.get("/search", [
+  query("id").optional().isInt().toInt(),
+  query("minPrice").optional().isFloat({ min: 0 }).toFloat(),
+  query("maxPrice").optional().isFloat({ min: 0 }).toFloat(),
+  handleValidations
+], (req, res) => {
   const { id, name, category, minPrice, maxPrice } = req.query;
   let filteredData = products;
 
   if (id) {
-    if (isNaN(parseInt(id)))
-      return res.status(400).json({ error: "ID must be a number" });
-
     filteredData = filteredData.filter(
-      (product) => parseInt(product.id) === parseInt(id),
+      (product) => product.id === id,
     );
   }
 
@@ -108,14 +112,13 @@ router.get("/search", (req, res) => {
 });
 
 // GET /api/products/:id - Get Specific Product
-router.get("/:id", (req, res) => {
-  const product = products.find((p) => p.id === parseInt(req.params.id));
-
-  if (product) {
-    res.json(product);
-  } else {
-    res.status(404).json({ error: `Product ${req.params.id} not found` });
-  }
+router.get("/:id", [
+  param("id").isInt().toInt(),
+  handleValidations
+], (req, res) => {
+  const product = products.find((p) => p.id === req.params.id);
+  if (!product) return res.status(404).json({ error: "Product not found" });
+  res.json(product);
 });
 
 /*
@@ -123,17 +126,17 @@ router.get("/:id", (req, res) => {
 */
 
 // POST /api/products - Add new Product
-router.post("/", (req, res) => {
+router.post("/", [
+  body("name").trim().notEmpty().withMessage("Name is required"),
+  body("price").isFloat({ min: 0 }).withMessage("Price must be a positive number").toFloat(),
+  handleValidations
+], (req, res) => {
   const { name, price, category, stock } = req.body;
-
-  // Validation of required fields
-  if (!name || !price)
-    return res.status(400).json({ error: "Name and Price are required" });
 
   const newProduct = {
     id: products.length > 0 ? products.at(-1).id + 1 : 1,
     name: name,
-    price: parseFloat(price),
+    price: price,
     category: category || "Uncategorized",
     stock: parseInt(stock) || 0,
   };

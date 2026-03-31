@@ -3,6 +3,7 @@ dotenv.config();
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import { loggerMiddleware } from "./middleware/logger.middleware.js";
 import userRoutes from "./routes/users.routes.js";
 import productRoutes from "./routes/products.routes.js";
 
@@ -11,14 +12,8 @@ const app = express();
 // JSON Middleware
 app.use(express.json());
 
-// Logger Middleware
-const loggingMiddleware = (req, res, next) => {
-  console.log(`${req.method} - ${req.url}`); // e.g. GET api/users
-  next(); // Call the next middleware function
-};
-
 // Invoke middleware (Globally) i.e. for all endpoints
-app.use(loggingMiddleware);
+app.use(loggerMiddleware);
 
 // For specific endpoints e.g. GET only
 

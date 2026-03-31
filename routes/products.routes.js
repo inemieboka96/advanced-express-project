@@ -149,6 +149,7 @@ router.post("/", [
   PUT REQUESTS
 */
 
+// PUT /api/products/:id - Complete replacement of existing product object
 router.put("/:id", [
   param("id").isInt().toInt(),
   body("name").trim().notEmpty(),
@@ -185,6 +186,7 @@ router.put("/:id", [
   PATCH REQUESTS
 */
 
+// PATCH /api/products/:id - Partial update of product object
 router.patch("/:id", [
   param("id").isInt().toInt(),
   body("name").optional().trim().notEmpty(),
@@ -202,6 +204,7 @@ router.patch("/:id", [
   DELETE REQUESTS
 */
 
+// DELETE /api/products/:id - Deletion of product object
 router.delete("/:id", [
   param("id").isInt().toInt(),
   handleValidations

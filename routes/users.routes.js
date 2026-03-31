@@ -188,6 +188,7 @@ router.post(
   PUT REQUESTS
 */
 
+// PUT /api/users/:id - Completely replace existing user object
 router.put(
   "/:id",
   [
@@ -227,6 +228,7 @@ router.put(
   PATCH REQUESTS
 */
 
+// PATCH /api/users/:id - Partial update of user object
 router.patch("/:id", [
   param("id").isInt().toInt(),
   body("username").optional().trim().notEmpty(),
@@ -247,6 +249,7 @@ router.patch("/:id", [
   DELETE REQUESTS
 */
 
+// DELETE /api/users/:id - Delete User Object
 router.delete("/:id", [
   param("id").isInt().withMessage("Invalid ID format").toInt(),
   handleValidations

@@ -1,5 +1,7 @@
 # Advanced Express.js Tutorial Project
 
+**Current Version:** 1.0.0
+
 Welcome to the **Advanced Express.js Tutorial Project**! This repository is a companion to the [Express.js Tutorial - All You Need to Know](https://youtu.be/nH9E25nkk3I) video, focusing on moving beyond basic routing to building production-ready web applications.
 
 ## 🚀 Overview

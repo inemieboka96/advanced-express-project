@@ -1,58 +1,17 @@
 import express from "express";
-import { body, query, param } from "express-validator";
+import { checkSchema } from "express-validator";
 import { handleValidations } from "../middleware/validator.middleware.js";
+import { products } from "../sampleData.js";
+import { 
+  productValidationSchema, 
+  productSearchSchema, 
+  idParamSchema 
+} from "../utils/validationSchemas.js";
 
 const router = express.Router();
 
-// Sample Data
-const products = [
-  {
-    id: 1,
-    name: "MacBook Pro",
-    price: 1999,
-    category: "Electronics",
-    stock: 10,
-  },
-  { id: 2, name: "iPhone 15", price: 999, category: "Electronics", stock: 25 },
-  {
-    id: 3,
-    name: "Ergonomic Chair",
-    price: 299,
-    category: "Furniture",
-    stock: 15,
-  },
-  {
-    id: 4,
-    name: "Mechanical Keyboard",
-    price: 150,
-    category: "Peripherals",
-    stock: 30,
-  },
-  {
-    id: 5,
-    name: "Gaming Mouse",
-    price: 80,
-    category: "Peripherals",
-    stock: 50,
-  },
-  { id: 6, name: "4K Monitor", price: 400, category: "Electronics", stock: 12 },
-  { id: 7, name: "Standing Desk", price: 550, category: "Furniture", stock: 8 },
-  {
-    id: 8,
-    name: "Noise Cancelling Headphones",
-    price: 350,
-    category: "Audio",
-    stock: 20,
-  },
-  {
-    id: 9,
-    name: "Smart Watch",
-    price: 250,
-    category: "Electronics",
-    stock: 40,
-  },
-  { id: 10, name: "USB-C Hub", price: 60, category: "Accessories", stock: 100 },
-];
+// Local copy to avoid mutating original sample data
+let productsData = [...products];
 
 /*
     GET REQUESTS
@@ -60,162 +19,165 @@ const products = [
 
 // GET /api/products - Returns all Products
 router.get("/", (req, res) => {
-  res.send(products);
+  res.send(productsData);
 });
 
 // GET /api/products/search - Searching for specific data
-router.get("/search", [
-  query("id").optional().isInt().toInt(),
-  query("minPrice").optional().isFloat({ min: 0 }).toFloat(),
-  query("maxPrice").optional().isFloat({ min: 0 }).toFloat(),
-  handleValidations
-], (req, res) => {
-  const { id, name, category, minPrice, maxPrice } = req.query;
-  let filteredData = products;
+router.get(
+  "/search",
+  checkSchema(productSearchSchema),
+  handleValidations,
+  (req, res) => {
+    const { id, name, category, minPrice, maxPrice } = req.query;
+    let filteredData = productsData;
 
-  if (id) {
-    filteredData = filteredData.filter(
-      (product) => product.id === id,
-    );
+    if (id) {
+      filteredData = filteredData.filter((product) => product.id === id);
+    }
+
+    if (name) {
+      filteredData = filteredData.filter(
+        (product) => product.name.toLowerCase() === name.toLowerCase()
+      );
+    }
+
+    if (category) {
+      filteredData = filteredData.filter(
+        (product) => product.category.toLowerCase() === category.toLowerCase()
+      );
+    }
+
+    if (minPrice !== undefined) {
+      filteredData = filteredData.filter((product) => product.price >= minPrice);
+    }
+
+    if (maxPrice !== undefined) {
+      filteredData = filteredData.filter((product) => product.price <= maxPrice);
+    }
+
+    if (filteredData.length === 0)
+      return res.status(404).json({ error: "No products available" });
+
+    res.json(filteredData);
   }
-
-  if (name) {
-    filteredData = filteredData.filter(
-      (product) => product.name.toLowerCase() === name.toLowerCase(),
-    );
-  }
-
-  if (category) {
-    filteredData = filteredData.filter(
-      (product) => product.category.toLowerCase() === category.toLowerCase(),
-    );
-  }
-
-  if (minPrice) {
-    filteredData = filteredData.filter(
-      (product) => product.price >= minPrice,
-    );
-  }
-
-  if (maxPrice) {
-    filteredData = filteredData.filter(
-      (product) => product.price <= maxPrice,
-    );
-  }
-
-  // Check if data exists after filtering
-  if (filteredData.length === 0)
-    return res.status(404).json({ error: "No products available" });
-
-  // Return filtered data
-  res.json(filteredData);
-});
+);
 
 // GET /api/products/:id - Get Specific Product
-router.get("/:id", [
-  param("id").isInt().toInt(),
-  handleValidations
-], (req, res) => {
-  const product = products.find((p) => p.id === req.params.id);
-  if (!product) return res.status(404).json({ error: "Product not found" });
-  res.json(product);
-});
+router.get(
+  "/:id",
+  checkSchema(idParamSchema),
+  handleValidations,
+  (req, res) => {
+    const product = productsData.find((p) => p.id === req.params.id);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+    res.json(product);
+  }
+);
 
 /*
     POST REQUESTS
 */
 
 // POST /api/products - Add new Product
-router.post("/", [
-  body("name").trim().notEmpty().withMessage("Name is required"),
-  body("price").isFloat({ min: 0 }).withMessage("Price must be a positive number").toFloat(),
-  handleValidations
-], (req, res) => {
-  const { name, price, category, stock } = req.body;
+router.post(
+  "/",
+  checkSchema(productValidationSchema),
+  handleValidations,
+  (req, res) => {
+    const { name, price, category, stock } = req.body;
 
-  const newProduct = {
-    id: products.length > 0 ? products.at(-1).id + 1 : 1,
-    name: name,
-    price: price,
-    category: category || "Uncategorized",
-    stock: parseInt(stock) || 0,
-  };
+    const newProduct = {
+      id: productsData.length > 0 ? productsData.at(-1).id + 1 : 1,
+      name,
+      price,
+      category: category || "Uncategorized",
+      stock: stock || 0, // already sanitized to Int by schema
+    };
 
-  products.push(newProduct);
-  res.status(201).json(newProduct);
-});
-
-/*
-  PUT REQUESTS
-*/
-
-// PUT /api/products/:id - Complete replacement of existing product object
-router.put("/:id", [
-  param("id").isInt().toInt(),
-  body("name").trim().notEmpty(),
-  body("price").isFloat({ min: 0 }).toFloat(),
-  body("category").optional().trim(),
-  body("stock").optional().isInt({ min: 0 }).toInt(),
-  handleValidations
-], (req, res) => {
-  // Find index of specific product
-  const productIndex = products.findIndex(
-    (product) => product.id === req.params.id,
-  );
-
-  // If not found (using === -1 to avoid bugs with index 0)
-  if (productIndex === -1)
-    return res.status(404).json({ error: "Product not found" });
-
-  // Destruct request body
-  const { name, price, category, stock } = req.body;
-
-  // Update specific product's data
-  products[productIndex] = {
-    id: req.params.id,
-    name: name,
-    price: price,
-    category: category || "Uncategorized",
-    stock: parseInt(stock) || 0,
-  };
-  // Return Code 200 - Ok
-  res.status(200).json(products[productIndex]);
-});
+    productsData.push(newProduct);
+    res.status(201).json(newProduct);
+  }
+);
 
 /*
-  PATCH REQUESTS
+    PUT REQUESTS
 */
 
-// PATCH /api/products/:id - Partial update of product object
-router.patch("/:id", [
-  param("id").isInt().toInt(),
-  body("name").optional().trim().notEmpty(),
-  body("price").optional().isFloat({ min: 0 }).toFloat(),
-  handleValidations
-], (req, res) => {
-  const product = products.find((p) => p.id === req.params.id);
-  if (!product) return res.status(404).json({ error: "Product not found" });
-  if (req.body.id) delete req.body.id; // Prevents changes to ID
-  Object.assign(product, req.body); // Update the specific product's data
-  res.status(200).json(product); // Return Status code 200 - Ok
-});
+// PUT /api/products/:id - Complete replacement
+router.put(
+  "/:id",
+  checkSchema(idParamSchema),
+  checkSchema(productValidationSchema),
+  handleValidations,
+  (req, res) => {
+    const productIndex = productsData.findIndex(
+      (product) => product.id === req.params.id
+    );
+
+    if (productIndex === -1)
+      return res.status(404).json({ error: "Product not found" });
+
+    const { name, price, category, stock } = req.body;
+
+    productsData[productIndex] = {
+      id: req.params.id,
+      name,
+      price,
+      category: category || "Uncategorized",
+      stock: stock || 0,
+    };
+    
+    res.status(200).json(productsData[productIndex]);
+  }
+);
 
 /*
-  DELETE REQUESTS
+    PATCH REQUESTS
 */
 
-// DELETE /api/products/:id - Deletion of product object
-router.delete("/:id", [
-  param("id").isInt().toInt(),
-  handleValidations
-], (req, res) => {
-  const index = products.findIndex(
-    (product) => product.id === req.params.id,
-  ); // Find product to delete in data
-  if (index === -1) return res.status(404).json({ error: "Product ID not found" }); // If not found return error
-  const [deletedProduct] = products.splice(index, 1); // Delete specific product & store deleted record in variable
+// PATCH /api/products/:id - Partial update
+router.patch(
+  "/:id",
+  checkSchema(idParamSchema),
+  // Modify schema to allow optional fields
+  checkSchema(
+    Object.fromEntries(
+      Object.entries(productValidationSchema).map(([key, value]) => [
+        key,
+        { ...value, optional: true },
+      ])
+    )
+  ),
+  handleValidations,
+  (req, res) => {
+    const product = productsData.find((p) => p.id === req.params.id);
+    if (!product) return res.status(404).json({ error: "Product not found" });
 
-  res.status(200).json(deletedProduct); // Return the deleted product
-});
+    if (req.body.id) delete req.body.id; 
+    Object.assign(product, req.body);
+    res.status(200).json(product);
+  }
+);
+
+/*
+    DELETE REQUESTS
+*/
+
+// DELETE /api/products/:id
+router.delete(
+  "/:id",
+  checkSchema(idParamSchema),
+  handleValidations,
+  (req, res) => {
+    const index = productsData.findIndex(
+      (product) => product.id === req.params.id
+    );
+    if (index === -1)
+      return res.status(404).json({ error: "Product ID not found" });
+
+    const [deletedProduct] = productsData.splice(index, 1);
+    res.status(200).json(deletedProduct);
+  }
+);
 
 export default router;
